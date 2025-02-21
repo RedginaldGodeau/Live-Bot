@@ -46,6 +46,14 @@ $livebot [message] [Fichier attaché]
 ---
 
 ## 🚀 Lancer le Bot
+1. **Remplire le .env**
+```env
+DISCORD_APP_ID= # ID de votre application discord (BOT)
+DISCORD_PUBLIC_KEY= # la clef public de votre application discord (BOT)
+FRONT_END_URL= # URL du front-end (localhost:8080 par defaut)
+```
+
+2. **Lancer le bot**
 ```bash
 make run
 ```  
