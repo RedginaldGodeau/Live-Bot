@@ -1,0 +1,21 @@
+# syntax=docker/dockerfile:1
+
+FROM golang:1.23.4-alpine
+
+ENV CGO_ENABLED=0
+
+RUN apk add ffmpeg && export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/ffmpeg/lib/pkgconfig/
+RUN go install github.com/air-verse/air@v1.61.1
+
+WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod download \
+    && go mod verify
+
+RUN mkdir /tmp/air
+
+EXPOSE 8080
+
+ENTRYPOINT ["air"]
+CMD ["-c", ".air.toml"]

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> LiveBot </title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik+Mono+One&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/public/tailwind.css">
+</head>
+<body class="bg-image h-screen w-screen overflow-hidden">
+    <div class="absolute top-0 left-0 w-full h-full bg-violet-500 z-10 opacity-50 mix-blend-overlay"></div>
+    <div class="w-full h-full p-5 relative z-20">
+        <div id="output" class="w-full h-full bg-violet-950 relative z-20 rounded-xl">
+            <p class="font-rubik-one font-bold text-5xl absolute left-0 top-0 w-1/2 text-center mix-blend-difference text-white" id="dvd"> Aucun contenu pour l'instant </p>
+        </div>
+    </div>
+    <script>
+        var loc = window.location;
+        var uri = 'ws:';
+
+        if (loc.protocol === 'https:') {
+        uri = 'wss:';
+        }
+        uri += '//' + loc.host;
+        uri += loc.pathname + 'ws/';
+
+        ws = new WebSocket("ws://localhost:8080/ws/")
+        
+
+        ws.onopen = function() {
+            console.log('Connected')
+        }
+
+        let oldUrl = ""
+
+        ws.onmessage = function(evt) {
+            const  out = document.getElementById('output');
+            const data = JSON.parse(evt.data)
+
+            if (typeof data == "string" || data == null) {
+                out.innerHTML = `<p class="font-rubik-one font-bold text-5xl absolute left-0 top-0 w-1/2 text-center mix-blend-difference text-white" id="dvd"> Aucun contenu pour l'instant </p>`
+                return
+            }
+
+            if (oldUrl == data.filePath) return
+            oldUrl = data.filePath
+
+            if (data.fileType == "video") {
+                out.innerHTML = `<video class="w-full h-full object-cover" loop autoplay>
+                    <source src="${data.filePath}" type="video/mp4"></source>
+                </video>
+                <p class="font-rubik-one font-bold text-3xl absolute w-full bottom-0 text-center mix-blend-difference text-white">${data.legend}</p>`;
+                const video = out.querySelector("video")
+                video.currentTime = data.currentTime 
+                video.play()
+            } else {
+                out.innerHTML = `<img class="w-full h-full object-cover" src="${data.filePath}"/><p>${data.legend}</p>`;
+            }
+        }
+
+        setInterval(function() {
+            ws.send('Hello, Server!');
+        }, 1000);
+
+        let x = 0,
+        y = 0,
+        dirX = 1,
+        dirY = 1;
+        const speed = 2;
+        let dvd = document.getElementById("dvd");
+        let prevColorChoiceIndex = 0;
+        let black = document.getElementById("output");
+        const dvdWidth = dvd.clientWidth;
+        const dvdHeight = dvd.clientHeight;
+        function animate() {
+            const dvdO = document.getElementById("dvd");
+            if (!dvdO) {
+                window.requestAnimationFrame(animate);
+                return
+            }
+            const screenHeight = document.body.clientHeight;
+            const screenWidth = document.body.clientWidth;
+
+            if (y + dvdHeight >= screenHeight || y < 0) {
+                dirY *= -1;
+            }
+            if (x + dvdWidth >= screenWidth || x < 0) {
+                dirX *= -1;
+            }
+            x += dirX * speed;
+            y += dirY * speed;
+            dvdO.style.left = x + "px";
+            dvdO.style.top = y + "px";
+            window.requestAnimationFrame(animate);
+        }
+        window.requestAnimationFrame(animate);
+
+
+    </script>
+</body>
+</html>
